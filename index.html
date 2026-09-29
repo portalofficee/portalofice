@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Портал-Сити</title>
+<style>
+:root{--bg:#fff4ec;--o:#ff5a14}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#fff4ec}}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.sec{position:relative;width:100%;line-height:0}
+.sec img{width:100%;display:block}
+.ph{width:100%;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;text-align:center;padding:8%;background:linear-gradient(135deg,#ffe3d1,#fff);color:#2b2b2b;font:700 clamp(18px,3.4vw,44px)/1.2 system-ui}
+.hs{position:absolute;transform:translate(-50%,-50%);border:0;cursor:pointer;display:block;transition:transform .2s,opacity .3s,background .2s}
+.hs.ghost{border-radius:999px;background:transparent}
+.hs.ghost:hover{background:#ffffff26;box-shadow:0 0 0 3px #fff8,0 8px 24px #ff5a1466;transform:translate(-50%,-50%) scale(1.04)}
+.hs.pin{border-radius:50%;aspect-ratio:1;background:var(--o);color:#fff;font:700 clamp(14px,2.2vw,30px)/1 system-ui;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 #ff5a1499;animation:pulse 1.8s infinite}
+.hs.pin:hover{transform:translate(-50%,-50%) scale(1.15)}
+.hs.hid{opacity:0;pointer-events:none;transform:translate(-50%,-50%) scale(.3);animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 14px #ff5a1400}100%{box-shadow:0 0 0 0 #ff5a1400}}
+.ov{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:10;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.ov.on{display:flex}
+.box{position:relative;width:min(96vw,calc(92vh*var(--ar,1.6)));max-height:92vh;overflow:auto;line-height:0;border-radius:16px;background:#fff}
+.x{position:sticky;float:right;top:10px;margin:10px 10px -50px 0;z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:#000a;color:#fff;font-size:22px;cursor:pointer;line-height:1}
+</style></head><body>
+<main id="app"></main>
+<div class="ov" id="ov"><div class="box" id="box"></div></div>
+<script>
+/* ===== НАСТРОЙКИ =====
+ x,y,w,h — положение и размер кнопки в % от картинки (кнопка «прозрачная», лежит поверх нарисованной)
+ type: link | popup | reveal (показывает другие кнопки, target — список id)
+ pin — круглая пульсирующая кнопка «+»
+ В POPUPS можно поставить img: 'ссылка или data:' — тогда вместо заглушки будет картинка */
+/* Картинки лежат в папке img рядом с этим файлом */
+const IMG=['img/1-privetstvie.jpg',
+  'img/2-aktivnosti.jpg',
+  'img/3-prizy.jpg',
+  'img/4-put.jpg',
+  'img/5-forma.jpg',
+  'img/popup-dela.jpg',
+  'img/popup-lavka.jpg'];
+const POPUPS={
+  sport:{label:'Спорт'},cook:{label:'Кулинарные шедевры'},books:{label:'Книги'},
+  art:{label:'Творчество'},disc:{label:'Открытия'},
+  shop:{img:IMG[6],ar:1.7762,noX:1,label:'Лавка артефактов',buttons:[{x:73.8,y:17.6,w:3.9,h:6.8,ghost:1,type:'close',label:'Закрыть'}]},
+  acts:{img:IMG[5],ar:1.7762,noX:1,label:'Дела за Порталеоны',buttons:[{x:68.2,y:9.8,w:3.9,h:6.8,ghost:1,type:'close',label:'Закрыть'}]}
+};
+const SECTIONS=[
+ {img:IMG[0],label:'Добро пожаловать',buttons:[]},
+ {img:IMG[1],label:'Строй Портал-Сити',buttons:[
+  {x:49.6,y:27.9,w:19.6,h:5.5,ghost:1,type:'popup',popup:'acts',label:'Все активности'}]},
+ {img:IMG[2],label:'Призы',buttons:[
+  {x:50,y:92.1,w:19.6,h:5.5,ghost:1,type:'popup',popup:'shop',label:'Перейти в магазин'}]},
+ {img:IMG[3],label:'Твой путь',buttons:[
+  {x:78.1,y:41.8,w:19.7,h:6.1,ghost:1,type:'link',href:'https://docs.google.com/spreadsheets/d/18mk2uDfFNTKV1bFS9QQnpd4nuZsN2MQlLCXSBJbAswI/edit?gid=0#gid=0',label:'Узнать количество Порталеонов'}]},
+ {img:IMG[4],label:'Всё важное',buttons:[
+  {x:49.9,y:29,w:19.6,h:5.5,ghost:1,type:'link',href:'https://forms.yandex.ru/u/6a2fdcefe010dbae03bfa10b',label:'Заполнить форму'}]}
+];
+const $=(t,c,p)=>{const e=document.createElement(t);if(c)e.className=c;if(p)p.append(e);return e};
+function makeBtn(b,host){
+ const el=b.type==='link'?$('a','hs',host):$('button','hs',host);
+ el.style.left=b.x+'%';el.style.top=b.y+'%';
+ if(b.w)el.style.width=b.w+'%';if(b.h)el.style.height=b.h+'%';
+ if(b.ghost){el.classList.add('ghost');el.setAttribute('aria-label',b.label)}else el.textContent=b.label;
+ if(b.pin){el.classList.add('pin');el.setAttribute('aria-label','Подробнее')}
+ if(b.hidden)el.classList.add('hid');
+ if(b.id)el.dataset.id=b.id;
+ if(b.type==='link'){el.href=b.href;if(b.href!=='#'){el.target='_blank';el.rel='noopener'}}
+ if(b.type==='popup')el.onclick=()=>{openPopup(POPUPS[b.popup]);(b.also||[]).forEach(id=>{const t=host.querySelector('[data-id="'+id+'"]');if(t)t.classList.remove('hid')})};
+ if(b.type==='close')el.onclick=closePopup;
+ if(b.type==='reveal')el.onclick=()=>b.target.forEach(id=>{const t=host.querySelector('[data-id="'+id+'"]');if(t)t.classList.toggle('hid')});
+}
+function makeImage(o,host){
+ if(o.img){const i=$('img','',host);i.src=o.img;i.alt=o.label||''}
+ else{const p=$('div','ph',host);p.textContent=o.label}
+ (o.buttons||[]).forEach(b=>makeBtn(b,host));
+}
+const app=document.getElementById('app'),ov=document.getElementById('ov'),box=document.getElementById('box');
+SECTIONS.forEach(s=>makeImage(s,$('section','sec',app)));
+function openPopup(p){box.innerHTML='';box.style.setProperty('--ar',p.ar||1.6);if(!p.noX){const x=$('button','x',box);x.textContent='×';x.setAttribute('aria-label','Закрыть');x.onclick=closePopup}makeImage(p,$('div','sec',box));ov.classList.add('on')}
+function closePopup(){ov.classList.remove('on')}
+ov.addEventListener('click',e=>{if(e.target===ov)closePopup()});
+addEventListener('keydown',e=>{if(e.key==='Escape')closePopup()});
+</script></body></html>
